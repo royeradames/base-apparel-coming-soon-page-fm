@@ -133,3 +133,22 @@ test("fits narrow and enlarged layouts with the family text and target floors", 
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+/* QA sweep October 8 (CRD1): "coming soon" was one text block squeezed to a word per line by its column width.
+   The design sets one word per line on purpose, so each line is its own element and no line wraps. */
+test("the heading sets one word per line by design and never wraps a line, from 320 to 1920", async ({ page }) => {
+  for (const width of [320, 375, 400, 600, 768, 1024, 1280, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const lines = await page.locator("h1").evaluate(heading => [...heading.querySelectorAll("span")]
+      .filter(span => span.children.length === 0)
+      .map(span => {
+        const range = document.createRange();
+        range.selectNodeContents(span);
+        const tops = new Set([...range.getClientRects()].map(rect => Math.round(rect.top)));
+        return [span.textContent, tops.size];
+      }));
+    expect(lines, `at ${width}`).toEqual([["We're", 1], ["coming", 1], ["soon", 1]]);
+  }
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("We're coming soon");
+});
