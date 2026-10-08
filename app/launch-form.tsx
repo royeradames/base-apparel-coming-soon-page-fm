@@ -6,6 +6,9 @@ import { useForm } from "@tanstack/react-form";
 import { useRef, useState } from "react";
 import { validateEmail } from "./email-schema";
 
+/** The demo pauses briefly so the busy state is visible; nothing leaves the browser. */
+const DEMO_DELAY_MS = 700;
+
 export function LaunchForm() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [submittedEmail, setSubmittedEmail] = useState<string | null>(null);
@@ -13,6 +16,8 @@ export function LaunchForm() {
     defaultValues: { email: "" },
     onSubmit: async ({ value }) => {
       // Demo only: the address stays in this tab and is never sent anywhere.
+      setSubmittedEmail(null);
+      await new Promise(resolve => setTimeout(resolve, DEMO_DELAY_MS));
       setSubmittedEmail(value.email.trim());
     },
     onSubmitInvalid: () => inputRef.current?.focus(),
@@ -26,6 +31,7 @@ export function LaunchForm() {
       onSubmit={event => {
         event.preventDefault();
         event.stopPropagation();
+        if (form.state.isSubmitting) return;
         void form.handleSubmit();
       }}
     >
@@ -63,7 +69,7 @@ export function LaunchForm() {
                 <form.Subscribe selector={state => state.isSubmitting}>
                   {isSubmitting => (
                     <button type="submit" className="submit" aria-label="Submit email for launch news" aria-busy={isSubmitting || undefined}>
-                      <img src="/images/icon-arrow.svg" width="12" height="20" alt="" />
+                      {isSubmitting ? <span className="spinner" aria-hidden="true" /> : <img src="/images/icon-arrow.svg" width="12" height="20" alt="" />}
                     </button>
                   )}
                 </form.Subscribe>
@@ -73,9 +79,13 @@ export function LaunchForm() {
           );
         }}
       </form.Field>
-      <p className="form-message status" role="status">
-        {submittedEmail ? `Thanks! ${submittedEmail} passed the check, but this demo doesn't save or send it.` : ""}
-      </p>
+      <form.Subscribe selector={state => state.isSubmitting}>
+        {isSubmitting => (
+          <p className="form-message status" role="status">
+            {isSubmitting ? "Checking your address…" : submittedEmail ? `Thanks! ${submittedEmail} passed the check, but this demo doesn't save or send it.` : ""}
+          </p>
+        )}
+      </form.Subscribe>
       <p id="demo-note" className="demo-note">Demo only: nothing is sent.</p>
     </form>
   );

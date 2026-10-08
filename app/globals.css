@@ -43,6 +43,9 @@ h1 span { display: block; }
 .submit:hover { background: linear-gradient(rgb(255 255 255 / .5), rgb(255 255 255 / .5)), linear-gradient(135deg, var(--button-from), var(--button-to)); }
 .submit[aria-busy="true"] { cursor: progress; }
 .submit img { display: block; }
+.spinner { width: 1.25rem; height: 1.25rem; border: 2px solid white; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
 .form-message { margin-top: .5rem; padding-left: 1.5rem; font-size: 1rem; line-height: 1.5; }
 .form-message.error { color: var(--red); }
 .form-message.status { color: var(--gray); }
