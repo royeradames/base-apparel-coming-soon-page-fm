@@ -2,7 +2,7 @@
 
 An implementation of the [Frontend Mentor Base Apparel coming soon page challenge](https://www.frontendmentor.io/challenges/base-apparel-coming-soon-page-5d46b47f8db8a7063f9331a0), using its supplied logo, hero crops, icons, background pattern, copy and design references.
 
-The email form is an honest demo. TanStack Form handles the field and Zod validates it: an empty field and a badly formatted address each show the design's error state. A valid address gets a visible confirmation that nothing was saved or sent, and the page always says "Demo only: nothing is sent." There is no account, mailing list or network write.
+The email form is an honest demo. TanStack Form handles the field and Zod validates it: an empty field and a badly formatted address each show the design's error state. A valid address shows a short busy state on the still-enabled button (a spinner, `aria-busy` and "Checking your address…"), then a visible confirmation that nothing was saved or sent, and the page always says "Demo only: nothing is sent." There is no account, mailing list or network write.
 
 ## Development
 

@@ -133,3 +133,41 @@ test("fits narrow and enlarged layouts with the family text and target floors", 
   await page.addStyleTag({ content: "html { font-size: 200%; }" });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+/* QA sweep October 8 (CRD1): "coming soon" was one text block squeezed to a word per line by its column width.
+   The design sets one word per line on purpose, so each line is its own element and no line wraps. */
+test("the heading sets one word per line by design and never wraps a line, from 320 to 1920", async ({ page }) => {
+  for (const width of [320, 375, 400, 600, 768, 1024, 1280, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const lines = await page.locator("h1").evaluate(heading => [...heading.querySelectorAll("span")]
+      .filter(span => span.children.length === 0)
+      .map(span => {
+        const range = document.createRange();
+        range.selectNodeContents(span);
+        const tops = new Set([...range.getClientRects()].map(rect => Math.round(rect.top)));
+        return [span.textContent, tops.size];
+      }));
+    expect(lines, `at ${width}`).toEqual([["We're", 1], ["coming", 1], ["soon", 1]]);
+  }
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("We're coming soon");
+});
+
+/* Journey QA October 8 (checklist 13): a valid submit showed no progress at all; it must show aria-busy and visible
+   busy text at once, keep the button enabled and focusable, ignore a second press, then confirm. */
+test("a valid submit shows visible progress on a focusable button before confirming", async ({ page }) => {
+  const writes = trackWrites(page);
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Email address" }).fill("jane@example.com");
+  const submit = page.getByRole("button", { name: "Submit email for launch news" });
+  await submit.click();
+  await expect(submit).toHaveAttribute("aria-busy", "true", { timeout: 150 });
+  await expect(page.getByRole("status")).toHaveText("Checking your address…", { timeout: 150 });
+  await expect(submit).toBeEnabled();
+  await submit.focus();
+  await expect(submit).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Thanks! jane@example.com passed the check, but this demo doesn't save or send it.");
+  await expect(submit).not.toHaveAttribute("aria-busy", "true");
+  expect(writes).toEqual([]);
+});
