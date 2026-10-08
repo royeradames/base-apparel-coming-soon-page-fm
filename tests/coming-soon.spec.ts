@@ -152,3 +152,22 @@ test("the heading sets one word per line by design and never wraps a line, from 
   }
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("We're coming soon");
 });
+
+/* Journey QA October 8 (checklist 13): a valid submit showed no progress at all; it must show aria-busy and visible
+   busy text at once, keep the button enabled and focusable, ignore a second press, then confirm. */
+test("a valid submit shows visible progress on a focusable button before confirming", async ({ page }) => {
+  const writes = trackWrites(page);
+  await page.goto("/");
+  await page.getByRole("textbox", { name: "Email address" }).fill("jane@example.com");
+  const submit = page.getByRole("button", { name: "Submit email for launch news" });
+  await submit.click();
+  await expect(submit).toHaveAttribute("aria-busy", "true", { timeout: 150 });
+  await expect(page.getByRole("status")).toHaveText("Checking your address…", { timeout: 150 });
+  await expect(submit).toBeEnabled();
+  await submit.focus();
+  await expect(submit).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("status")).toHaveText("Thanks! jane@example.com passed the check, but this demo doesn't save or send it.");
+  await expect(submit).not.toHaveAttribute("aria-busy", "true");
+  expect(writes).toEqual([]);
+});
