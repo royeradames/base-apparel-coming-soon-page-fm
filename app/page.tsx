@@ -15,7 +15,7 @@ export default function Home() {
           <img src="/images/hero-mobile.jpg" width="375" height="250" alt="A model in a peach button-up shirt, previewing the Base Apparel collection" fetchPriority="high" />
         </picture>
         <main className="content">
-          <h1><span className="title-light">We&apos;re</span> <span className="title-strong">coming soon</span></h1>
+          <h1><span className="title-light">We&apos;re</span> <span className="title-strong"><span>coming</span> <span>soon</span></span></h1>
           <p className="intro">Hello fellow shoppers! We&apos;re currently building our new fashion store. Add your email below to stay up-to-date with announcements and our launch deals.</p>
           <LaunchForm />
         </main>
